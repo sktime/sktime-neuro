@@ -14,6 +14,10 @@ there is none yet
 
 Contributors
 ------------
-Tony Bagnall
-Svea Myer
-Martina Vilas
+Tony Bagnall (@TonyBagnall)
+
+James Large (@James-Large)
+
+Svea Myer (@SveaMeyer13)
+
+Martina Vilas  (@martinagvilas)
