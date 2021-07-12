@@ -1,5 +1,4 @@
 sktime
-sktime-dl
 pytest
 pytest-cov
 flaky

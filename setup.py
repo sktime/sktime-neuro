@@ -49,7 +49,7 @@ def find_install_requires():
 
     install_requires = [
         'sktime', # ==0.6.1
-        'sktime-dl'
+        #'sktime-dl'
     ]
 
     return install_requires

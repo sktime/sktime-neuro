@@ -10,7 +10,10 @@ Initially we are concentrating on classification of EEG data.
 
 Documentation
 -------------
-there is none
+there is none yet
 
 Contributors
 ------------
+Tony Bagnall
+Svea Myer
+Martina Vilas
