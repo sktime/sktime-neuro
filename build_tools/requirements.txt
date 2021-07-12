@@ -1,6 +1,5 @@
 numpy==1.19.2
 sktime
-sktime-dl
 pytest
 pytest-cov
 flaky
