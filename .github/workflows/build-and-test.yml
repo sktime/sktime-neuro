@@ -1,0 +1,39 @@
+name: Build and test sktime-dl
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    
+env:
+  TEST_DIR: tmp/
+  REQUIREMENTS: build_tools/requirements.txt
+  TEST_SLOW: false    
+    
+jobs:
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: 3.7
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Run build script
+      run: ./build_tools/build.sh
+      shell: bash
+    - name: Run test script
+      run: ./build_tools/test.sh
+      shell: bash
