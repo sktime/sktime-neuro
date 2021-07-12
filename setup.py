@@ -55,7 +55,7 @@ def find_install_requires():
     return install_requires
 
 
-DISTNAME = 'sktime_neuro'  # package name is sktime-dl, to have a valid module path, module name is sktime_dl
+DISTNAME = 'sktime-neuro'  # package name is sktime-dl, to have a valid module path, module name is sktime_dl
 DESCRIPTION = 'Deep learning extension package for sktime, a scikit-learn ' \
               'compatible toolbox for learning with time series data'
 with codecs.open('README.rst', encoding='utf-8-sig') as f:
@@ -70,7 +70,7 @@ PROJECT_URLS = {
     'Documentation': 'https://sktime.github.io/sktime-dl/',
     'Source Code': 'https://github.com/sktime/sktime-dl'
 }
-VERSION = find_version('sktime-neuro', '__init__.py')
+VERSION = find_version('sktime_neuro', '__init__.py')
 INSTALL_REQUIRES = find_install_requires()
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
