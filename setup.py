@@ -15,7 +15,7 @@ from setuptools import setup
 # raise early warning for incompatible Python versions
 if sys.version_info < (3, 6) or sys.version_info >= (3, 8):
     raise RuntimeError(
-        "sktime-dl requires Python 3.6 or 3.7 (only with tensorflow>=1.13.1). "
+        "sktime-dl requires Python 3.6 or 3.7. "
         "The current Python version is %s installed in %s."
         % (platform.python_version(), sys.executable))
 
@@ -55,22 +55,23 @@ def find_install_requires():
     return install_requires
 
 
-DISTNAME = 'sktime_neuro'  # package name is sktime-dl, to have a valid module path, module name is sktime_dl
-DESCRIPTION = 'Deep learning extension package for sktime, a scikit-learn ' \
-              'compatible toolbox for learning with time series data'
+DISTNAME = 'sktime_neuro'  # package name is sktime-dl, to have a valid module path,
+# module name is sktime_dl
+DESCRIPTION = 'An extension package for sktime that focussed on algorithms ' \
+              'specfically for neurological problems. '
 with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
-MAINTAINER = 'F. Király'
-MAINTAINER_EMAIL = 'f.kiraly@ucl.ac.uk'
-URL = 'https://github.com/sktime/sktime-dl'
+MAINTAINER = 'Tony Bagnall'
+MAINTAINER_EMAIL = 'ajb@uea.ac.uk'
+URL = 'https://github.com/sktime/sktime-neuro'
 LICENSE = 'BSD-3-Clause'
-DOWNLOAD_URL = 'https://pypi.org/project/sktime-dl/#files'
+DOWNLOAD_URL = 'https://pypi.org/project/sktime-neuro/#files'
 PROJECT_URLS = {
-    'Issue Tracker': 'https://github.com/sktime/sktime-dl/issues',
-    'Documentation': 'https://sktime.github.io/sktime-dl/',
-    'Source Code': 'https://github.com/sktime/sktime-dl'
+    'Issue Tracker': 'https://github.com/sktime/sktime-neuro/issues',
+    'Documentation': 'https://sktime.github.io/sktime-neuro/',
+    'Source Code': 'https://github.com/sktime/sktime-neuro'
 }
-VERSION = find_version('sktime-neuro', '__init__.py')
+VERSION = find_version('sktime_neuro', '__init__.py')
 INSTALL_REQUIRES = find_install_requires()
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
