@@ -21,6 +21,8 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: 3.7
+    env:
+      PYTHON_VERSION: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
