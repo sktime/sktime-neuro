@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Install script for sktime-dl"""
+"""Install script for sktime-neuro"""
 
 import codecs
 import os
@@ -13,9 +13,9 @@ from setuptools import find_packages
 from setuptools import setup
 
 # raise early warning for incompatible Python versions
-if sys.version_info < (3, 6) or sys.version_info >= (3, 8):
+if sys.version_info < (3, 6):
     raise RuntimeError(
-        "sktime-dl requires Python 3.6 or 3.7. "
+        "sktime-neuro requires Python 3.6 or older "
         "The current Python version is %s installed in %s."
         % (platform.python_version(), sys.executable))
 
@@ -55,8 +55,8 @@ def find_install_requires():
     return install_requires
 
 
-DISTNAME = 'sktime-neuro'  # package name is sktime-dl, to have a valid module path, module name is sktime_dl
-DESCRIPTION = 'Deep learning extension package for sktime, a scikit-learn ' \
+DISTNAME = 'sktime-neuro'  # package name is sktime-neuro, to have a valid module path, module name is sktime_neuro
+DESCRIPTION = 'Neuroscience extension package for sktime, a scikit-learn ' \
               'compatible toolbox for learning with time series data'
 with codecs.open('README.rst', encoding='utf-8-sig') as f:
     LONG_DESCRIPTION = f.read()
