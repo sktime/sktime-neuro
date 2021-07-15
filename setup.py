@@ -50,6 +50,8 @@ def find_install_requires():
 
     install_requires = [
         "sktime",  # ==0.6.1
+        "mne",
+        "mne_bids"
         #'sktime-dl'
     ]
 
