@@ -4,3 +4,5 @@ pytest
 pytest-cov
 flaky
 coveralls
+mne
+mne_bids
