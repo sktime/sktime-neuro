@@ -4,6 +4,7 @@ __all__ = ["TimeSlicingTransformer"]
 
 from sktime_neuro.transformations.base import _PanelToPanelTransformer
 from sktime.utils.validation.panel import check_X
+import numpy as np
 
 
 class TimeSlicingTransformer(_PanelToPanelTransformer):
@@ -25,7 +26,7 @@ class TimeSlicingTransformer(_PanelToPanelTransformer):
         self.fs = fs
         super(TimeSlicingTransformer, self).__init__()
 
-    def transform(self, X, y=None):
+    def transform(self, X, y=None) -> np.array:
         """
         Slice data into region of interest.
 

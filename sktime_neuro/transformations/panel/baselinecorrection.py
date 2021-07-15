@@ -32,7 +32,7 @@ class BaselineCorrectionTransformer(_PanelToPanelTransformer):
         self.fs = fs
         super(BaselineCorrectionTransformer).__init__()
 
-    def transform(self, X, y=None):
+    def transform(self, X, y=None) -> np.array:
         """
         Transform X by averaging over interval i and subtracting that value
         from entire trial.

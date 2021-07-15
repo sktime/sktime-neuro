@@ -6,6 +6,7 @@ import pandas as pd
 from sktime_neuro.transformations.base import _SeriesToSeriesTransformer
 from mne import filter
 from sktime.utils.validation.series import check_series
+import numpy as np
 
 _required_parameter = ["sfreq", "l_freq", "h_freq"]
 
@@ -57,7 +58,7 @@ class FilterforSeries(_SeriesToSeriesTransformer):
                 raise ValueError("High frequency must be higher" " than low frequency")
         super(FilterforSeries, self).__init__()
 
-    def transform(self, Z, x=None):
+    def transform(self, Z, x=None) -> np.array:
         """Transform data.
         Returns a transformed version of Z.
 

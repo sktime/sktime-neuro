@@ -20,7 +20,7 @@ class Epoch(_SeriesToPanelTransformer):
         self.sfreq = sfreq
         super(Epoch).__init__()
 
-    def transform(self, Z, y=None):
+    def transform(self, Z, y=None) -> np.array:
         """
         Parameters
         _________

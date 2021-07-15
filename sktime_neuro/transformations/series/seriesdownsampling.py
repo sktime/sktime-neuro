@@ -4,6 +4,7 @@ __all__ = ["SeriesDownsampling"]
 
 from sktime_neuro.transformations.base import _SeriesToSeriesTransformer
 from sktime.utils.validation.series import check_series
+import numpy as np
 
 
 class SeriesDownsampling(_SeriesToSeriesTransformer):
@@ -29,7 +30,7 @@ class SeriesDownsampling(_SeriesToSeriesTransformer):
             raise TypeError("Can only downsample by whole integers")
         super(SeriesDownsampling, self).__init__()
 
-    def transform(self, Z, y=None):
+    def transform(self, Z, y=None) -> np.array:
         """
         Take every factorth element of a trial.
 

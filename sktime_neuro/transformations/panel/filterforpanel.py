@@ -6,6 +6,7 @@ __all__ = ["FilterforPanel"]
 from sktime_neuro.transformations.base import _PanelToPanelTransformer
 from sktime.utils.validation.panel import check_X
 from mne import filter
+import numpy as np
 
 _required_parameter = ["sfreq", "l_freq", "h_freq"]
 
@@ -57,7 +58,7 @@ class FilterforPanel(_PanelToPanelTransformer):
                 raise ValueError("High frequency must be higher /" "than low frequency")
         super(FilterforPanel, self).__init__()
 
-    def transform(self, Z, x=None):
+    def transform(self, Z, x=None) -> np.array:
         """Transform data.
         Returns a transformed version of Z.
 

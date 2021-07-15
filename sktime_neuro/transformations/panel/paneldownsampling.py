@@ -4,6 +4,7 @@ __all__ = ["PanelDownsampling"]
 
 from sktime.transformations.base import _PanelToPanelTransformer
 from sktime.utils.validation.panel import check_X
+import numpy as np
 
 
 class PanelDownsampling(_PanelToPanelTransformer):
@@ -30,7 +31,7 @@ class PanelDownsampling(_PanelToPanelTransformer):
             raise TypeError("Can only downsample by whole integers")
         super(PanelDownsampling, self).__init__()
 
-    def transform(self, X, y=None):
+    def transform(self, X, y=None) -> np.array:
         """
         Take every factorth element of a trial.
 
