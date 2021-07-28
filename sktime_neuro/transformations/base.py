@@ -125,8 +125,8 @@ class _PanelToPanelTransformer(BaseTransformer):
         raise NotImplementedError("abstract method")
 
 
-class _SeriesToPanelTransformer(BaseTransformer):
-    """Transformer base class for series to panel transforms"""
+# class _SeriesToPanelTransformer(BaseTransformer):
+#   """Transformer base class for series to panel transforms"""
 
-    def transform(self, Z: Series, y=None) -> Panel:
-        raise NotImplementedError("abstract method")
+#    def transform(self, Z: Series, y=None) -> Panel:
+#        raise NotImplementedError("abstract method")
