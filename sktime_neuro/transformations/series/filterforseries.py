@@ -65,7 +65,8 @@ class FilterforSeries(_SeriesToSeriesTransformer):
         Parameters
         ----------
         Z : 2D numpy array, pd.Series or pd.DataFrame
-        (will get coerced to numpy)
+        (will get coerced to numpy); needs to be of
+        shape timepoints*channels
 
         Returns
         -------
@@ -79,8 +80,14 @@ class FilterforSeries(_SeriesToSeriesTransformer):
         if isinstance(z, (pd.DataFrame, pd.Series)):
             z = z.to_numpy()
 
+        # mne needs timepoints to be the last dimension
+        z = z.transpose()
+
+        # z is now of shape channels * timepoints
         z = filter.filter_data(
             z, sfreq=self.sfreq, l_freq=self.l_freq, h_freq=self.h_freq, **self.kwargs
         )
 
+        # transpose back to have sktime shape again (timepoints*channels)
+        z = z.transpose()
         return z

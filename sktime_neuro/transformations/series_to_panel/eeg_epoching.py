@@ -9,6 +9,9 @@ def epoch(Z, annotation, labels, interval, sfreq) -> (np.array, np.array):
     """
     Parameters
     _________
+    Z : np.array
+        time series to be epoched
+        shape: timepoints*channels
     annotation : pd.DataFrame,
         one row per event with columns "onset", "duration"
         and "descritption"
@@ -32,7 +35,7 @@ def epoch(Z, annotation, labels, interval, sfreq) -> (np.array, np.array):
     Z = check_series(Z)
 
     # create shape of final data
-    n_channels = Z.shape[0]
+    n_channels = Z.shape[1]
     n_timepoints = int(interval[1] * sfreq) - int(interval[0] * sfreq)
     n_trials = len(annotation.loc[lambda df: df["description"].isin(labels)]["onset"])
     X = np.zeros((n_trials, n_channels, n_timepoints))
@@ -48,12 +51,14 @@ def epoch(Z, annotation, labels, interval, sfreq) -> (np.array, np.array):
         # iterate over onsets and add them to the datacontainer (X) and labels (y)
         for onset in onsets_of_label:
             offset = int(sfreq * onset)
-            X[idx] = Z[
-                :,
-                (int(interval[0] * sfreq) + offset) : (
-                    int(interval[1] * sfreq) + offset
-                ),
-            ]
+            X[idx] = (
+                Z[
+                    (int(interval[0] * sfreq) + offset) : (
+                        int(interval[1] * sfreq) + offset
+                    ),
+                    :,
+                ]
+            ).transpose()
             y.append(label)
             idx += 1
     return X, np.asarray(y)
