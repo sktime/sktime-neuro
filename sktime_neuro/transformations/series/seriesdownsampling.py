@@ -5,6 +5,7 @@ __all__ = ["SeriesDownsampling"]
 from sktime_neuro.transformations.base import _SeriesToSeriesTransformer
 from sktime.utils.validation.series import check_series
 import numpy as np
+import pandas as pd
 
 
 class SeriesDownsampling(_SeriesToSeriesTransformer):
@@ -37,7 +38,8 @@ class SeriesDownsampling(_SeriesToSeriesTransformer):
         Parameters
         _________
         X : np.array
-            shape: channels*timepoints
+            shape: timepoints*channels
+            (also accepts pd.DataFrame that will get coerced to numpy)
 
         Returns
         ________
@@ -51,7 +53,11 @@ class SeriesDownsampling(_SeriesToSeriesTransformer):
         if self.factor > Z.shape[1]:
             raise ValueError("Factor too high for shape of Series.")
 
-        z = z[:, 0 :: self.factor]
+        # deals with numpy arrays:
+        if isinstance(z, (pd.DataFrame, pd.Series)):
+            z = z.to_numpy()
+
+        z = z[0 :: self.factor, :]
         # do we need a warning about this?
         # print("The new sampling frequency is:" + str(self.fs / self.factor))
         return z
