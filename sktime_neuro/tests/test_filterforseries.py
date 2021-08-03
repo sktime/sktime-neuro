@@ -64,13 +64,14 @@ def test_filter_kwargs(kwargs):
 @pytest.mark.parametrize("hfreq", [11, 20, None])
 def test_filter_results(sfreq, lfreq, hfreq):
     np.random.seed(42)
-    X = 0.02 * np.random.randn(30, 1000)
+    X = 0.02 * np.random.randn(1000, 30)
 
-    # sklearn
+    # sktime
     Filter = FilterforSeries(sfreq=sfreq, l_freq=lfreq, h_freq=hfreq)
     Xt1 = Filter.fit_transform(X)
 
     # mne
-    Xt2 = filter.filter_data(X, sfreq=sfreq, l_freq=lfreq, h_freq=hfreq)
+    X = X.transpose()
+    Xt2 = filter.filter_data(X, sfreq=sfreq, l_freq=lfreq, h_freq=hfreq).transpose()
 
     assert np.allclose(Xt1, Xt2)
