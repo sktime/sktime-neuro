@@ -3,6 +3,7 @@ import scipy.io
 import mne
 from sktime_neuro.utils import mne_processing as utils
 import pandas as pd
+import numpy as np
 
 
 def load_c4_ds1(path, subject, load="train"):
@@ -34,13 +35,13 @@ def load_c4_ds1(path, subject, load="train"):
 
     # naming of subject is a to g instead of 1 to 7
     subject_mapping = {
-        "1": "a",
-        "2": "b",
-        "3": "c",
-        "4": "d",
-        "5": "e",
-        "6": "f",
-        "7": "g",
+        "01": "a",
+        "02": "b",
+        "03": "c",
+        "04": "d",
+        "05": "e",
+        "06": "f",
+        "07": "g",
     }
 
     # load corresponding matfile
@@ -103,7 +104,7 @@ def load_c4_ds2b(path, subject, load="train"):
         for i in range(1, 4):
             # 1 to 3 is training and 4 & 5 is testing
             # first load data into mne format
-            fname = path + "B0" + subject + "0" + str(i) + "T.gdf"
+            fname = path + "B0" + subject + str(i) + "T.gdf"
             if i == 1:
                 raw = mne.io.read_raw_gdf(fname, preload=True)
             elif 1 < i < 4:
@@ -114,7 +115,7 @@ def load_c4_ds2b(path, subject, load="train"):
         # 1 to 3 is training and 4 & 5 is testing
         # first load data into mne format
         for i in range(4, 6):
-            fname = path + "B0" + subject + "0" + str(i) + "E.gdf"
+            fname = path + "B0" + subject + str(i) + "E.gdf"
             if i == 4:
                 raw = mne.io.read_raw_gdf(fname)
             elif i == 5:
@@ -133,18 +134,80 @@ def load_c4_ds2b(path, subject, load="train"):
     return fs, data, annotation
 
 
-def load_BCNI_2():
-    pass
+def load_BNCI_2(path, subject, load="train"):
+    """Load Data from the second dataset of BNCI Horizon 2020.
+
+    Data to be found at: http://bnci-horizon-2020.eu/database/data-sets
+
+    Parameters
+    ----------
+
+    path : str
+        path to datasets
+    subject : str
+        number of subject to load
+    load : str (either "train" or "test")
+        laod train or test data
+
+    Returns
+    -------
+
+    fs: float in Hz
+        sampling frequency od the recorded data
+    data : np.array
+        recorded data with shape timepoints*channels
+    annotation : pd.Dataframe
+         one row per event with columns
+        "onset", "duration" and "description"
+    """
+    if load == "train":
+        fname = path + "S" + subject + "T.mat"
+        runs = 5
+    elif load == "test":
+        fname = path + "S" + subject + "E.mat"
+        runs = 3
+    else:
+        raise ValueError("can only load test or train")
+
+    m = scipy.io.loadmat(fname, struct_as_record=True)
+    annotation_pandas = pd.DataFrame(columns=["onset", "duration", "description"])
+
+    fs = 512
+    len_of_last_run = 0
+    for run in range(runs):
+        if run == 0:
+            data = m["data"][0][run][0][0][0]
+            onsets = ((m["data"][0][run][0][0][1] + len_of_last_run) * 1 / fs).flatten()
+            labels = (m["data"][0][run][0][0][2]).flatten()
+            len_of_last_run = data.shape[0]
+        else:
+            new_data = m["data"][0][run][0][0][0]
+            data = np.vstack((data, new_data))
+            new_onsets = (
+                (m["data"][0][run][0][0][1] + len_of_last_run) * 1 / fs
+            ).flatten()
+            onsets = np.concatenate((onsets, new_onsets))
+            new_labels = (m["data"][0][run][0][0][2]).flatten()
+            labels = np.concatenate((labels, new_labels))
+            len_of_last_run = data.shape[0]
+
+    annotation_pandas["onset"] = onsets
+    annotation_pandas["description"] = labels
+
+    return fs, data, annotation_pandas
 
 
 if __name__ == "__main__":
-    competition = "c4_ds2b"
+    competition = "bnci_2"
 
     if competition == "c4_ds2b":
         path = "Data/c4_ds2b/"
-        fs, data, annotation = load_c4_ds2b(path=path, subject="4")
+        fs, data, annotation = load_c4_ds2b(path=path, subject="04")
     elif competition == "c4_ds1":
         path = "Data/c4_ds1/"
-        fs, data, annotation = load_c4_ds1(path=path, subject="4")
+        fs, data, annotation = load_c4_ds1(path=path, subject="04")
+    elif competition == "bnci_2":
+        path = "Data/bnci_2/"
+        fs, data, annotation = load_BNCI_2(path=path, subject="01")
     else:
-        raise ValueError("Dataset not available")
+        raise ValueError("Dataset loader not available")
