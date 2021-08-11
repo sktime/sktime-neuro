@@ -55,10 +55,10 @@ def load_c4_ds1(path, subject, load="train"):
     m = scipy.io.loadmat(fname, struct_as_record=True)
 
     # get raw data
-    data = m["cnt"]
+    data = m["cnt"].astype(float)
 
     # get sampling frequency
-    fs = m["nfo"]["fs"][0][0][0][0]
+    fs = int(m["nfo"]["fs"][0][0][0][0])
 
     # create annotation
     # multiplying by fs to get onset time and not index
@@ -104,7 +104,7 @@ def load_c4_ds2b(path, subject, load="train"):
         for i in range(1, 4):
             # 1 to 3 is training and 4 & 5 is testing
             # first load data into mne format
-            fname = path + "B0" + subject + str(i) + "T.gdf"
+            fname = path + "B" + subject + "0" + str(i) + "T.gdf"
             if i == 1:
                 raw = mne.io.read_raw_gdf(fname, preload=True)
             elif 1 < i < 4:
@@ -115,7 +115,7 @@ def load_c4_ds2b(path, subject, load="train"):
         # 1 to 3 is training and 4 & 5 is testing
         # first load data into mne format
         for i in range(4, 6):
-            fname = path + "B0" + subject + str(i) + "E.gdf"
+            fname = path + "B0" + subject + "0" + str(i) + "E.gdf"
             if i == 4:
                 raw = mne.io.read_raw_gdf(fname)
             elif i == 5:
@@ -198,7 +198,7 @@ def load_BNCI_2(path, subject, load="train"):
 
 
 if __name__ == "__main__":
-    competition = "bnci_2"
+    competition = "c4_ds1"
 
     if competition == "c4_ds2b":
         path = "Data/c4_ds2b/"
