@@ -38,19 +38,18 @@ def epoch(Z, annotation, labels, interval, sfreq) -> (np.array, np.array):
     n_channels = Z.shape[1]
     n_timepoints = int(interval[1] * sfreq) - int(interval[0] * sfreq)
     n_trials = len(annotation.loc[lambda df: df["description"].isin(labels)]["onset"])
+    if n_trials == 0:
+        raise ValueError(
+            "Data does not contain trials that "
+            "correspond to any of the provided labels."
+        )
     X = np.zeros((n_trials, n_channels, n_timepoints))
     y = []
-
-    # iterate over specified labels and get corresponding trials
     idx = 0
-    for label in labels:
-
-        # get all onsets that correspond to the label we are currently looking at
-        onsets_of_label = annotation.loc[lambda df: df["description"] == label]["onset"]
-
-        # iterate over onsets and add them to the datacontainer (X) and labels (y)
-        for onset in onsets_of_label:
-            offset = int(sfreq * onset)
+    # iterate over annotator and add data parts that belong to label
+    for _, row in annotation.iterrows():
+        if row["description"] in labels:
+            offset = int(sfreq * row["onset"])
             X[idx] = (
                 Z[
                     (int(interval[0] * sfreq) + offset) : (
@@ -59,6 +58,7 @@ def epoch(Z, annotation, labels, interval, sfreq) -> (np.array, np.array):
                     :,
                 ]
             ).transpose()
-            y.append(label)
+            y.append(row["description"])
             idx += 1
+
     return X, np.asarray(y)
