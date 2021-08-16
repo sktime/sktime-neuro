@@ -115,7 +115,7 @@ def load_c4_ds2b(path, subject, load="train"):
         # 1 to 3 is training and 4 & 5 is testing
         # first load data into mne format
         for i in range(4, 6):
-            fname = path + "B0" + subject + "0" + str(i) + "E.gdf"
+            fname = path + "B" + subject + "0" + str(i) + "E.gdf"
             if i == 4:
                 raw = mne.io.read_raw_gdf(fname)
             elif i == 5:
