@@ -8,7 +8,7 @@ Both of these formats are 16-bit.
 from pyedflib import highlevel
 import numpy as np
 import pandas as pd
-from sktime.utils.data_io import *
+from sktime.datasets._data_io import *
 
 
 def read_edf(filepath : str) -> np.ndarray:
