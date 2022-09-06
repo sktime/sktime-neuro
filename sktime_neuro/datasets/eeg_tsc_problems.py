@@ -28,6 +28,7 @@ eeg_problems = [
     "EyesOpenShut",
     "FingerMovements",
     "HandMovementDirection",
+    "MindReading",
     "MotorImagery",
     "FaceDetection",
     "SelfRegulationSCP1",
