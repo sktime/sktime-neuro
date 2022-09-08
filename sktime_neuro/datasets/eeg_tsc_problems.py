@@ -35,6 +35,62 @@ eeg_problems = [
     "SelfRegulationSCP2",
 ]
 
+
+def get_single_classifier_results_from_web(classifier):
+    """Load the results for a single classifier on a single resample.
+
+     Load from results into a dictionary of {problem_names: accuracy (numpy array)
+    """
+    url = "https://timeseriesclassification.com/results/ResultsByClassifier" \
+          "/Multivariate/" \
+          ""+classifier
+
+    url = url+"_TESTFOLDS.csv"
+    import requests
+    response = requests.get(url)
+    data = response.text
+    split = data.split('\n')
+    results = {}
+    for i, line in enumerate(split):
+        if len(line) > 0 and i > 0:
+            all = line.split(",")
+            res = np.array(all[1:]).astype(float)
+            results[all[0]] = res
+#    for inst in results:
+#        print(inst, "  ", results[inst])
+    return results
+
+def get_averaged_results(datasets, classifiers, resample=0):
+    """Extracts all results for multivariate UEA datasets on tsc.com for classifiers,
+    then formats them into an array size n_datasets x n_classifiers
+    """
+    results = np.zeros(shape=(len(datasets),len(classifiers)))
+    cls_index = 0
+    for cls in classifiers:
+        selected = {}
+        # Get all the results
+        full_results = get_single_classifier_results_from_web(cls)
+        # Extract the required ones
+        data_index = 0
+        for d in datasets:
+            results[data_index][cls_index] = np.NaN
+            if d in full_results:
+                all_resamples = full_results[d]
+                if(len(all_resamples)>resample): # Average here
+                    results[data_index][cls_index] = all_resamples[resample]
+            data_index = data_index + 1
+        cls_index = cls_index + 1
+#    results = results.transpose()
+    return results
+
+
+res = get_single_classifier_results_from_web("ROCKET")
+
+eeg_res = get_averaged_results(eeg_problems, ["ROCKET", "CIF", "InceptionTime",
+                                              "HIVE-COTE"])
+print(eeg_res)
+
+
 if __name__ == "__main__":
     """
     Example simple usage, with arguments input via script or hard coded for testing
@@ -45,13 +101,13 @@ if __name__ == "__main__":
     results_path = "C://Temp//"
     classifier = FreshPRINCE()
     dataset = "SelfRegulationSCP1"
-    load_and_run_classification_experiment(
-        problem_path=data_dir,
-        results_path=results_dir,
-        classifier=set_classifier(classifier, resample, tf),
-        cls_name="FreshPRINCE",
-        dataset=dataset,
-    )
+#    load_and_run_classification_experiment(
+#        problem_path=data_dir,
+#        results_path=results_dir,
+#        classifier=set_classifier(classifier, resample, tf),
+#        cls_name="FreshPRINCE",
+#        dataset=dataset,
+#    )
 
 
 
