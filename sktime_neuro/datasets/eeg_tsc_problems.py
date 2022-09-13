@@ -35,15 +35,35 @@ eeg_problems = [
     "SelfRegulationSCP2",
 ]
 
+valid_uni_classifiers =[
+    "Arsenal", "BOSS","Catch22","cBOSS","CIF","DrCIF","HC1","HC2","InceptionTime",
+    "ProximityForest","ResNet","RISE","ROCKET","S-BOSS","STC","STSF","TDE",
+    "TS-CHIEF","TSF","WEASEL"
+]
+valid_multi_classifiers = [
+    "CBOSS", "CIF", "DTW_A", "DTW_D", "DTW_I", "gRSF", "InceptionTime","mrseql",
+    "MUSE","ResNet","RISE","ROCKET","STC","TapNet","TSF"
+]
 
-def get_single_classifier_results_from_web(classifier):
+def get_single_classifier_results_from_web(classifier, type="Univariate"):
     """Load the results for a single classifier on a single resample.
 
-     Load from results into a dictionary of {problem_names: accuracy (numpy array)
+     Load from results into a dictionary of {problem_names: accuracy (numpy array)}.
+
+     classifier: one of X
+     type: string, either "Univariate" or "Multivariate"
     """
-    url = "https://timeseriesclassification.com/results/ResultsByClassifier" \
-          "/Multivariate/" \
-          ""+classifier
+    if type == "Univariate":
+        if not classifier in valid_uni_classifiers:
+            raise Exception("Error, classifier ", classifier, "not in univariate set")
+    elif type == "Multivariate":
+        if not classifier in valid_multi_classifiers:
+            raise Exception("Error, classifier ", classifier, "not in multivariate set")
+    else:
+        raise Exception("Type must be Univariate or Multivariate, you set it to ",type)
+
+    url = "https://timeseriesclassification.com/results/ResultsByClassifier/"+type\
+          +"/"+ classifier
 
     url = url+"_TESTFOLDS.csv"
     import requests
@@ -60,24 +80,29 @@ def get_single_classifier_results_from_web(classifier):
 #        print(inst, "  ", results[inst])
     return results
 
-def get_averaged_results(datasets, classifiers, resample=0):
-    """Extracts all results for multivariate UEA datasets on tsc.com for classifiers,
-    then formats them into an array size n_datasets x n_classifiers
+def get_averaged_results(datasets, classifiers, start=0, end=1, type="Multivariate"):
+    """Extracts all results for UCR/UEA datasets on tsc.com for classifiers,
+    then formats them into an array size n_datasets x n_classifiers.
     """
+    if end<start:
+        raise Exception("End resample smaller than start resample")
     results = np.zeros(shape=(len(datasets),len(classifiers)))
     cls_index = 0
     for cls in classifiers:
         selected = {}
         # Get all the results
-        full_results = get_single_classifier_results_from_web(cls)
+        full_results = get_single_classifier_results_from_web(cls, type=type)
         # Extract the required ones
         data_index = 0
         for d in datasets:
             results[data_index][cls_index] = np.NaN
             if d in full_results:
                 all_resamples = full_results[d]
-                if(len(all_resamples)>resample): # Average here
-                    results[data_index][cls_index] = all_resamples[resample]
+                if len(all_resamples) >= end: # Average here
+                    mean = all_resamples[start]
+                    for i in range(start+1,end):
+                        mean = mean+all_resamples[i]
+                    results[data_index][cls_index] =mean/(end-start)
             data_index = data_index + 1
         cls_index = cls_index + 1
 #    results = results.transpose()
@@ -87,8 +112,8 @@ def get_averaged_results(datasets, classifiers, resample=0):
 res = get_single_classifier_results_from_web("ROCKET")
 
 eeg_res = get_averaged_results(eeg_problems, ["ROCKET", "CIF", "InceptionTime",
-                                              "HIVE-COTE"])
-print(eeg_res)
+                                              "HIVE-COTE"], end=30)
+print(eeg_res[1])
 
 
 if __name__ == "__main__":

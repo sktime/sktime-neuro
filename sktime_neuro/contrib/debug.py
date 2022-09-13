@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from mne_bids import BIDSPath, read_raw_bids
-
+#from mne_bids import BIDSPath, read_raw_bids
+from sktime.datasets import load_from_tsfile_to_dataframe
 
 def bandwidth_examples():
     """Example of finding bandpowers from https://raphaelvallat.com/bandpower.html"""
@@ -57,6 +57,21 @@ def bandwidth_examples():
     #plt.show()
 
 
+def check_blink():
+    trainX, trainY = load_from_tsfile_to_dataframe("C:\\Users\\Tony\\OneDrive - "
+                                                   "University of East "
+                                                   "Anglia\\Research\\Data\\Blink\\Blink_TRAIN.ts")
+    testX, testY = load_from_tsfile_to_dataframe("C:\\Users\\Tony\\OneDrive - "
+                                                   "University of East "
+                                                   "Anglia\\Research\\Data\\Blink\\Blink_TEST.ts" )
+    print(trainX.shape, " ", trainY, " ", type(trainY))
+    print(" Count of short blink  = ",np.count_nonzero(trainY=='shortblink'))
+    print(" Count of long blink  = ",np.count_nonzero(trainY=='longblink'))
+    print(testX.shape, " ", testY.shape)
+    print(" Count of short blink  = ",np.count_nonzero(testY=='shortblink'))
+    print(" Count of long blink  = ",np.count_nonzero(testY=='longblink'))
+
 if __name__ == "__main__":
     """Hacking around EEG data."""
-    bandwidth_examples()
+   #bandwidth_examples()
+    check_blink()
