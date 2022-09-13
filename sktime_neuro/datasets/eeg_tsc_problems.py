@@ -10,10 +10,12 @@ import pandas as pd
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
-from sktime.contrib.experiments import run_experiment
-from sktime.datasets.base import load_UCR_UEA_dataset
-from sktime.contrib.experiments import set_classifier
-from sktime.contrib.experiments import write_results_to_uea_format
+
+from sktime.benchmarking.experiments import load_and_run_classification_experiment
+from sktime.datasets import write_results_to_uea_format
+from sktime.datasets import load_UCR_UEA_dataset
+from sktime.classification.feature_based import FreshPRINCE
+
 
 os.environ["MKL_NUM_THREADS"] = "1"  # must be done before numpy import!!
 os.environ["NUMEXPR_NUM_THREADS"] = "1"  # must be done before numpy import!!
@@ -26,214 +28,92 @@ eeg_problems = [
     "EyesOpenShut",
     "FingerMovements",
     "HandMovementDirection",
+    "MindReading",
     "MotorImagery",
     "FaceDetection",
     "SelfRegulationSCP1",
     "SelfRegulationSCP2",
 ]
-def run_experiment(
-    results_path,
-    trainX, trainY,
-    testX, testY,
-    cls_name,
-    dataset,
-    classifier=None,
-    resampleID=0,
-    overwrite=False,
-    format=".ts",
-    train_file=False,
-):
-    """Run a classification experiment.
 
-    Method to run a basic experiment and write the results to files called
-    testFold<resampleID>.csv and, if required, trainFold<resampleID>.csv.
+valid_uni_classifiers =[
+    "Arsenal", "BOSS","Catch22","cBOSS","CIF","DrCIF","HC1","HC2","InceptionTime",
+    "ProximityForest","ResNet","RISE","ROCKET","S-BOSS","STC","STSF","TDE",
+    "TS-CHIEF","TSF","WEASEL"
+]
+valid_multi_classifiers = [
+    "CBOSS", "CIF", "DTW_A", "DTW_D", "DTW_I", "gRSF", "InceptionTime","mrseql",
+    "MUSE","ResNet","RISE","ROCKET","STC","TapNet","TSF"
+]
 
-    Parameters
-    ----------
-    problem_path: Location of problem files, full path.
-    results_path: Location of where to write results. Any required directories
-        will be created
-    cls_name: determines which classifier to use, as defined in set_classifier.
-        This assumes predict_proba is
-    implemented, to avoid predicting twice. May break some classifiers though
-    dataset: Name of problem. Files must be  <problem_path>/<dataset>/<dataset>+
-                "_TRAIN"+format, same for "_TEST"
-    resampleID: Seed for resampling. If set to 0, the default train/test split
-                from file is used. Also used in output file name.
-    overwrite: if set to False, this will only build results if there is not a
-                result file already present. If
-    True, it will overwrite anything already there
-    format: Valid formats are ".ts", ".arff" and ".long".
-    For more info on format, see   examples/Loading%20Data%20Examples.ipynb
-    train_file: whether to generate train files or not. If true, it performs a
-                10xCV on the train and saves
+def get_single_classifier_results_from_web(classifier, type="Univariate"):
+    """Load the results for a single classifier on a single resample.
+
+     Load from results into a dictionary of {problem_names: accuracy (numpy array)}.
+
+     classifier: one of X
+     type: string, either "Univariate" or "Multivariate"
     """
-    build_test = True
-    if not overwrite:
-        full_path = (
-            str(results_path)
-            + "/"
-            + str(cls_name)
-            + "/Predictions/"
-            + str(dataset)
-            + "/testFold"
-            + str(resampleID)
-            + ".csv"
-        )
-        if os.path.exists(full_path):
-            print(
-                full_path
-                + " Already exists and overwrite set to false, not building Test"
-            )
-            build_test = False
-        if train_file:
-            full_path = (
-                str(results_path)
-                + "/"
-                + str(cls_name)
-                + "/Predictions/"
-                + str(dataset)
-                + "/trainFold"
-                + str(resampleID)
-                + ".csv"
-            )
-            if os.path.exists(full_path):
-                print(
-                    full_path
-                    + " Already exists and overwrite set to false, not building Train"
-                )
-                train_file = False
-        if train_file == False and build_test == False:
-            return
+    if type == "Univariate":
+        if not classifier in valid_uni_classifiers:
+            raise Exception("Error, classifier ", classifier, "not in univariate set")
+    elif type == "Multivariate":
+        if not classifier in valid_multi_classifiers:
+            raise Exception("Error, classifier ", classifier, "not in multivariate set")
+    else:
+        raise Exception("Type must be Univariate or Multivariate, you set it to ",type)
 
-    # TO DO: Automatically differentiate between problem types,
-    # currently only works with .ts
-    #trainX, trainY = load_ts(problem_path + dataset + "/" + dataset + "_TRAIN" +
-    # format)
-    #testX, testY = load_ts(problem_path + dataset + "/" + dataset + "_TEST" + format)
-    if resampleID != 0:
-        # allLabels = np.concatenate((trainY, testY), axis = None)
-        # allData = pd.concat([trainX, testX])
-        # train_size = len(trainY) / (len(trainY) + len(testY))
-        # trainX, testX, trainY, testY = train_test_split(allData, allLabels,
-        # train_size=train_size,
-        # random_state=resampleID, shuffle=True,
-        # stratify=allLabels)
-        trainX, trainY, testX, testY = stratified_resample(
-            trainX, trainY, testX, testY, resampleID
-        )
+    url = "https://timeseriesclassification.com/results/ResultsByClassifier/"+type\
+          +"/"+ classifier
 
-    le = preprocessing.LabelEncoder()
-    le.fit(trainY)
-    trainY = le.transform(trainY)
-    testY = le.transform(testY)
-    if classifier is None:
-        classifier = set_classifier(cls_name, resampleID)
-    print(cls_name + " on " + dataset + " resample number " + str(resampleID))
-    if build_test:
-        # TO DO : use sklearn CV
-        start = int(round(time.time() * 1000))
-        classifier.fit(trainX, trainY)
-        build_time = int(round(time.time() * 1000)) - start
-        start = int(round(time.time() * 1000))
-        probs = classifier.predict_proba(testX)
-        preds = classifier.classes_[np.argmax(probs, axis=1)]
-        test_time = int(round(time.time() * 1000)) - start
-        ac = accuracy_score(testY, preds)
-        print(
-            cls_name
-            + " on "
-            + dataset
-            + " resample number "
-            + str(resampleID)
-            + " test acc: "
-            + str(ac)
-            + " time: "
-            + str(test_time)
-        )
-        #        print(str(classifier.findEnsembleTrainAcc(trainX, trainY)))
-        if "Composite" in cls_name:
-            second = "Para info too long!"
-        else:
-            second = str(classifier.get_params())
-        second.replace("\n", " ")
-        second.replace("\r", " ")
+    url = url+"_TESTFOLDS.csv"
+    import requests
+    response = requests.get(url)
+    data = response.text
+    split = data.split('\n')
+    results = {}
+    for i, line in enumerate(split):
+        if len(line) > 0 and i > 0:
+            all = line.split(",")
+            res = np.array(all[1:]).astype(float)
+            results[all[0]] = res
+#    for inst in results:
+#        print(inst, "  ", results[inst])
+    return results
 
-        print(second)
-        temp = np.array_repr(classifier.classes_).replace("\n", "")
+def get_averaged_results(datasets, classifiers, start=0, end=1, type="Multivariate"):
+    """Extracts all results for UCR/UEA datasets on tsc.com for classifiers,
+    then formats them into an array size n_datasets x n_classifiers.
+    """
+    if end<start:
+        raise Exception("End resample smaller than start resample")
+    results = np.zeros(shape=(len(datasets),len(classifiers)))
+    cls_index = 0
+    for cls in classifiers:
+        selected = {}
+        # Get all the results
+        full_results = get_single_classifier_results_from_web(cls, type=type)
+        # Extract the required ones
+        data_index = 0
+        for d in datasets:
+            results[data_index][cls_index] = np.NaN
+            if d in full_results:
+                all_resamples = full_results[d]
+                if len(all_resamples) >= end: # Average here
+                    mean = all_resamples[start]
+                    for i in range(start+1,end):
+                        mean = mean+all_resamples[i]
+                    results[data_index][cls_index] =mean/(end-start)
+            data_index = data_index + 1
+        cls_index = cls_index + 1
+#    results = results.transpose()
+    return results
 
-        third = (
-            str(ac)
-            + ","
-            + str(build_time)
-            + ","
-            + str(test_time)
-            + ",-1,-1,"
-            + str(len(classifier.classes_))
-        )
-        write_results_to_uea_format(
-            second_line=second,
-            third_line=third,
-            output_path=results_path,
-            classifier_name=cls_name,
-            resample_seed=resampleID,
-            predicted_class_vals=preds,
-            actual_probas=probs,
-            dataset_name=dataset,
-            actual_class_vals=testY,
-            split="TEST",
-        )
-    if train_file:
-        start = int(round(time.time() * 1000))
-        if build_test and hasattr(
-            classifier, "_get_train_probs"
-        ):  # Normally Can only do this if test has been built
-            train_probs = classifier._get_train_probs(trainX)
-        else:
-            train_probs = cross_val_predict(
-                classifier, X=trainX, y=trainY, cv=10, method="predict_proba"
-            )
-        train_time = int(round(time.time() * 1000)) - start
-        train_preds = classifier.classes_[np.argmax(train_probs, axis=1)]
-        train_acc = accuracy_score(trainY, train_preds)
-        print(
-            cls_name
-            + " on "
-            + dataset
-            + " resample number "
-            + str(resampleID)
-            + " train acc: "
-            + str(train_acc)
-            + " time: "
-            + str(train_time)
-        )
-        if "Composite" in cls_name:
-            second = "Para info too long!"
-        else:
-            second = str(classifier.get_params())
-        second.replace("\n", " ")
-        second.replace("\r", " ")
-        temp = np.array_repr(classifier.classes_).replace("\n", "")
-        third = (
-            str(train_acc)
-            + ","
-            + str(train_time)
-            + ",-1,-1,-1,"
-            + str(len(classifier.classes_))
-        )
-        write_results_to_uea_format(
-            second_line=second,
-            third_line=third,
-            output_path=results_path,
-            classifier_name=cls_name,
-            resample_seed=resampleID,
-            predicted_class_vals=train_preds,
-            actual_probas=train_probs,
-            dataset_name=dataset,
-            actual_class_vals=trainY,
-            split="TRAIN",
-        )
 
+res = get_single_classifier_results_from_web("ROCKET")
+
+eeg_res = get_averaged_results(eeg_problems, ["ROCKET", "CIF", "InceptionTime",
+                                              "HIVE-COTE"], end=30)
+print(eeg_res[1])
 
 
 if __name__ == "__main__":
@@ -242,29 +122,17 @@ if __name__ == "__main__":
     """
     print(" Local Run")
     results_dir = "C:/Temp/EEG/"
-    classifier = "ROCKET"
-    resample = 0
-    #         for i in range(0, len(univariate_datasets)):
-    #             dataset = univariate_datasets[i]
-    # #            print(i)
-    # #            print(" problem = "+dataset)
-    problem=eeg_problems[5]
-    print("Loading ",problem)
-    trX, trY = load_UCR_UEA_dataset(problem, split="train", return_X_y=True)
-    teX, teY = load_UCR_UEA_dataset(problem, split="test", return_X_y=True)
-    tf = False
-    run_experiment(
-        overwrite=True,
-        trainX=trX,
-        trainY=trY,
-        testX=trX,
-        testY=trY,
-        results_path=results_dir,
-        cls_name=classifier,
-        dataset=problem,
-        resampleID=resample,
-        train_file=tf,
-    )
+    problem_path = "C://Data//EEG//"
+    results_path = "C://Temp//"
+    classifier = FreshPRINCE()
+    dataset = "SelfRegulationSCP1"
+#    load_and_run_classification_experiment(
+#        problem_path=data_dir,
+#        results_path=results_dir,
+#        classifier=set_classifier(classifier, resample, tf),
+#        cls_name="FreshPRINCE",
+#        dataset=dataset,
+#    )
 
 
 
